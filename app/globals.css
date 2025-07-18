@@ -2,58 +2,77 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Styles Apple Intelligence */
 @layer base {
-  html {
-    font-family: system-ui, sans-serif;
+  body {
+    @apply bg-white text-gray-900 font-light;
+    font-family: 'SF Pro Display', 'Inter', 'Helvetica Neue', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 }
 
 @layer components {
-  .btn {
-    @apply px-4 py-2 rounded-lg font-medium transition-colors duration-200;
+  /* Dégradé Apple Intelligence */
+  .bg-apple-intelligence {
+    background: linear-gradient(90deg, #2997ff, #a259c2, #f46f30, #f4284a);
   }
   
-  .btn-primary {
-    @apply bg-primary-500 text-white hover:bg-primary-600;
+  /* Texte avec dégradé Apple Intelligence */
+  .text-apple-intelligence {
+    background: linear-gradient(90deg, #2997ff, #a259c2, #f46f30, #f4284a);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
   }
   
-  .btn-success {
-    @apply bg-success-500 text-white hover:bg-success-600;
+  /* Effet glassmorphism épuré */
+  .glass {
+    @apply bg-white/80 backdrop-blur-sm border border-white/20;
   }
   
-  .btn-warning {
-    @apply bg-warning-500 text-white hover:bg-warning-600;
+  /* Animation d'apparition douce */
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
   
-  .btn-danger {
-    @apply bg-danger-500 text-white hover:bg-danger-600;
+  .animate-fade-in-up {
+    animation: fadeInUp 0.6s ease-out forwards;
   }
   
-  .btn-secondary {
-    @apply bg-gray-200 text-gray-800 hover:bg-gray-300;
+  /* Effet de survol Apple */
+  .apple-hover {
+    @apply transition-all duration-300 hover:scale-[1.02] hover:shadow-lg;
   }
   
-  .card {
-    @apply bg-white rounded-lg shadow-sm border p-6;
+  /* Style de scrollbar minimaliste */
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 4px;
   }
   
-  .badge {
-    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
   }
   
-  .badge-success {
-    @apply bg-success-50 text-success-600;
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: 2px;
   }
   
-  .badge-warning {
-    @apply bg-warning-50 text-warning-600;
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, 0.2);
   }
-  
-  .badge-danger {
-    @apply bg-danger-50 text-danger-600;
-  }
-  
-  .badge-gray {
-    @apply bg-gray-100 text-gray-600;
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
   }
 } 

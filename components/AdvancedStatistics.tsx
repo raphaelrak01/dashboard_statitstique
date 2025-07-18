@@ -40,7 +40,7 @@ export default function AdvancedStatistics({ fliiinkers }: AdvancedStatisticsPro
           <div className="flex items-center justify-between">
             <div>
               <p className="text-green-100 text-sm">Rayon moyen</p>
-              <p className="text-3xl font-bold">{stats.averageRadiusGlobal}</p>
+              <p className="text-3xl font-bold">{stats.averageRadiusGlobal / 1000}</p>
               <p className="text-green-200 text-xs">kilomètres</p>
             </div>
             <Target className="w-12 h-12 text-green-200" />
@@ -111,7 +111,7 @@ export default function AdvancedStatistics({ fliiinkers }: AdvancedStatisticsPro
                     <span className="text-lg font-bold text-blue-600">{service.lowestPrice}€</span>
                   </td>
                   <td className="text-center py-4 px-4">
-                    <span className="text-md font-semibold text-purple-600">{service.averageRadius}km</span>
+                    <span className="text-md font-semibold text-purple-600">{(service.averageRadius / 1000).toFixed(1)}km</span>
                   </td>
                   <td className="py-4 px-4">
                     {service.highestPriceFliiinker && (

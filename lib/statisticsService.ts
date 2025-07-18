@@ -132,11 +132,15 @@ export function calculateFliiinkerStatistics(fliiinkers: FliiinkerData[]): Globa
 
   // Répartition des prix par tranches
   const priceRanges = [
-    { range: '0-25€', min: 0, max: 25 },
-    { range: '25-50€', min: 25, max: 50 },
-    { range: '50-75€', min: 50, max: 75 },
-    { range: '75-100€', min: 75, max: 100 },
-    { range: '100€+', min: 100, max: Infinity }
+    { range: '10-12€', min: 0, max: 12 },
+    { range: '12-14€', min: 12, max: 14 },
+    { range: '14-16€', min: 14, max: 16 },
+    { range: '16-18€', min: 16, max: 18 },
+    { range: '18-20€', min: 18, max: 20 },
+    { range: '20-22€', min: 20, max: 22 },
+    { range: '22-24€', min: 22, max: 24 },
+    { range: '24-26€', min: 24, max: 26 },
+    { range: '26€+', min: 26, max: Infinity }
   ].map(range => {
     const count = allPrices.filter(price => price >= range.min && price < range.max).length
     return {
@@ -146,15 +150,19 @@ export function calculateFliiinkerStatistics(fliiinkers: FliiinkerData[]): Globa
     }
   })
 
-  // Répartition des rayons par tranches
+  // Répartition des rayons par tranches (conversion mètres -> kilomètres)
   const radiusRanges = [
     { range: '0-5km', min: 0, max: 5 },
     { range: '5-10km', min: 5, max: 10 },
-    { range: '10-20km', min: 10, max: 20 },
-    { range: '20-50km', min: 20, max: 50 },
+    { range: '10-25km', min: 10, max: 25 },
+    { range: '25-50km', min: 25, max: 50 },
     { range: '50km+', min: 50, max: Infinity }
   ].map(range => {
-    const count = allRadii.filter(radius => radius >= range.min && radius < range.max).length
+    // Convertir les rayons de mètres en kilomètres pour la comparaison
+    const count = allRadii.filter(radius => {
+      const radiusInKm = radius / 1000
+      return radiusInKm >= range.min && radiusInKm < range.max
+    }).length
     return {
       range: range.range,
       count,

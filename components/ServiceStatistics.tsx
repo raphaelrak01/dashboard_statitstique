@@ -116,7 +116,7 @@ export default function ServiceStatistics({ fliiinkers }: ServiceStatisticsProps
             <div className="text-sm opacity-90">Prix moyen global</div>
           </div>
           <div className="text-center">
-            <div className="text-3xl font-bold">{globalStats.globalAverageRadius} km</div>
+            <div className="text-3xl font-bold">{globalStats.globalAverageRadius / 1000} km</div>
             <div className="text-sm opacity-90">Rayon moyen</div>
           </div>
           <div className="text-center">
@@ -160,7 +160,7 @@ export default function ServiceStatistics({ fliiinkers }: ServiceStatisticsProps
                     <Target className="w-4 h-4 text-orange-500" />
                     <span className="text-sm text-gray-600">Rayon moyen</span>
                   </div>
-                  <span className="font-bold text-orange-600">{stat.averageRadius} km</span>
+                  <span className="font-bold text-orange-600">{stat.averageRadius / 1000} km</span>
                 </div>
 
                 {/* Fliiinkers */}

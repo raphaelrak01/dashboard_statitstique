@@ -7,15 +7,19 @@ import SearchBar from '@/components/FilterBar'
 import StatsOverview from '@/components/StatsOverview'
 import FliiinkerDetailModal from '@/components/FliiinkerDetailModal'
 import AdvancedStatistics from '@/components/AdvancedStatistics'
-import { BarChart3, Users, Map, List } from 'lucide-react'
+import { BarChart3, Users, Map, List, Activity } from 'lucide-react'
 import dynamic from 'next/dynamic'
+import { Card, CardBody, Tabs, Tab, Spinner } from '@heroui/react'
 
 // Import dynamique pour éviter les problèmes SSR avec Leaflet
 const GlobalFliiinkerMap = dynamic(() => import('@/components/GlobalFliiinkerMap'), {
   ssr: false,
   loading: () => (
-    <div className="h-[700px] bg-gray-100 rounded-lg flex items-center justify-center">
-      <p className="text-gray-500">Chargement de la carte globale...</p>
+    <div className="h-[700px] bg-gray-50/30 rounded-2xl flex items-center justify-center border border-gray-100/50">
+      <div className="flex flex-col items-center space-y-4">
+        <Spinner size="lg" color="default" />
+        <p className="text-gray-500 text-sm font-light">Chargement de la carte globale...</p>
+      </div>
     </div>
   )
 })
@@ -152,44 +156,17 @@ export default function Dashboard() {
     }
   }
 
-  const tabs = [
-    {
-      id: 'list' as TabType,
-      name: 'Liste des Fliiinkers',
-      icon: List,
-      count: filteredFliiinkers.length
-    },
-    {
-      id: 'statistics' as TabType,
-      name: 'Statistiques avancées',
-      icon: BarChart3,
-      count: null
-    },
-    {
-      id: 'map' as TabType,
-      name: 'Carte globale',
-      icon: Map,
-      count: null
-    }
-  ]
-
   if (loading) {
     return (
-      <div className="space-y-6">
-        <div className="flex justify-between items-center">
-          <div>
-            <h2 className="text-3xl font-bold text-gray-900">
-              Dashboard Fliiinker
-            </h2>
-            <p className="text-gray-600 mt-1">
-              Chargement des profils éligibles...
-            </p>
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center animate-fade-in">
+          <div className="mb-8">
+            <Spinner size="lg" color="default" />
           </div>
-        </div>
-        
-        <div className="flex items-center justify-center py-12">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500"></div>
-          <span className="ml-3 text-gray-600">Chargement des données...</span>
+          <h2 className="text-2xl font-light text-gray-600 mb-2">
+            Chargement du dashboard
+          </h2>
+          <p className="text-gray-400 font-light">Analyse des données en cours...</p>
         </div>
       </div>
     )
@@ -197,141 +174,166 @@ export default function Dashboard() {
 
   if (error) {
     return (
-      <div className="space-y-6">
-        <div className="flex justify-between items-center">
-          <div>
-            <h2 className="text-3xl font-bold text-gray-900">
-              Dashboard Fliiinker
-            </h2>
-            <p className="text-gray-600 mt-1">
-              Erreur lors du chargement
-            </p>
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center animate-fade-in">
+          <div className="w-16 h-16 rounded-2xl bg-red-50 flex items-center justify-center mx-auto mb-8 border border-red-100">
+            <Activity className="w-8 h-8 text-red-400" />
           </div>
-        </div>
-        
-        <div className="bg-danger-50 border border-danger-200 rounded-lg p-6">
-          <div className="flex items-center">
-            <div className="flex-shrink-0">
-              <svg className="h-5 w-5 text-danger-400" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-              </svg>
-            </div>
-            <div className="ml-3">
-              <h3 className="text-sm font-medium text-danger-800">
-                Erreur de chargement
-              </h3>
-              <div className="mt-2 text-sm text-danger-700">
-                <p>{error}</p>
-                <p className="mt-2">
-                  Veuillez vérifier votre configuration Supabase dans le fichier .env.local
-                </p>
-              </div>
-            </div>
-          </div>
+          <h2 className="text-2xl font-light text-gray-900 mb-2">
+            Connexion impossible
+          </h2>
+          <p className="text-gray-500 font-light max-w-md">{error}</p>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex justify-between items-center">
-        <div>
-          <h2 className="text-3xl font-bold text-gray-900">
-            Dashboard Fliiinker
-          </h2>
-          <p className="text-gray-600 mt-1">
-            Gérez les profils éligibles et analysez les données
-          </p>
-        </div>
-      </div>
-
-      {/* Statistiques rapides globales */}
-      <StatsOverview stats={getStats()} />
-
-      {/* Navigation par onglets */}
-      <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-        <div className="border-b border-gray-200">
-          <nav className="-mb-px flex space-x-8 px-6" aria-label="Tabs">
-            {tabs.map((tab) => {
-              const Icon = tab.icon
-              return (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`${
-                    activeTab === tab.id
-                      ? 'border-blue-500 text-blue-600 bg-blue-50'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                  } whitespace-nowrap py-4 px-6 border-b-2 font-medium text-sm rounded-t-lg transition-all duration-200 flex items-center space-x-2`}
-                >
-                  <Icon className="w-5 h-5" />
-                  <span>{tab.name}</span>
-                  {tab.count !== null && (
-                    <span className={`${
-                      activeTab === tab.id ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-600'
-                    } ml-2 py-1 px-2 rounded-full text-xs font-semibold`}>
-                      {tab.count}
-                    </span>
-                  )}
-                </button>
-              )
-            })}
-          </nav>
-        </div>
-
-        {/* Contenu des onglets */}
-        <div className="p-6">
-          {activeTab === 'list' && (
-            <div className="space-y-6">
-              <SearchBar searchTerm={searchTerm} onSearchChange={setSearchTerm} />
-
-              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                {filteredFliiinkers.map((fliiinker) => (
-                  <FliiinkerCard
-                    key={fliiinker.profile.id}
-                    fliiinker={fliiinker}
-                    decision={decisions[fliiinker.profile.id]}
-                    onDecision={handleDecision}
-                    onViewDetails={handleViewDetails}
-                  />
-                ))}
-              </div>
-
-              {!loading && filteredFliiinkers.length === 0 && fliiinkers.length > 0 && (
-                <div className="text-center py-12">
-                  <p className="text-gray-500 text-lg">
-                    {searchTerm ? `Aucun fliiinker trouvé pour "${searchTerm}"` : 'Aucun fliiinker ne correspond aux critères'}
-                  </p>
-                  {searchTerm && (
-                    <button
-                      onClick={() => setSearchTerm('')}
-                      className="mt-2 text-primary-600 hover:text-primary-700 font-medium"
-                    >
-                      Effacer la recherche
-                    </button>
-                  )}
-                </div>
-              )}
-
-              {!loading && fliiinkers.length === 0 && (
-                <div className="text-center py-12">
-                  <p className="text-gray-500 text-lg">
-                    Aucun fliiinker éligible trouvé dans la base de données
-                  </p>
-                </div>
-              )}
+    <div className="min-h-screen bg-gray-50/30">
+      <div className="w-[90%] mx-auto px-8 py-8">
+        {/* Header Dashboard compact */}
+        <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center space-x-4">
+            <div className="w-12 h-12 flex items-center justify-center">
+              <img 
+                src="/logo.png"
+                alt="Logo Plüm" 
+                className="w-full h-full object-contain"
+              />
             </div>
-          )}
+            <div>
+              <h1 className="text-2xl font-semibold text-gray-900">Dashboard Plüm</h1>
+              <p className="text-gray-500 font-light">Gestion intelligente des profils Plüm</p>
+            </div>
+          </div>
+          <div className="flex items-center space-x-3 bg-white/80 backdrop-blur-sm rounded-2xl px-4 py-2 border border-gray-200/50 shadow-sm">
+            <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+            <span className="text-sm font-medium text-gray-700">{fliiinkers.length} profils</span>
+            <span className="text-xs text-gray-500">• En temps réel</span>
+          </div>
+        </div>
 
-          {activeTab === 'statistics' && (
-            <AdvancedStatistics fliiinkers={fliiinkers} />
-          )}
+        {/* Statistiques principales */}
+        <div className="mb-12 animate-slide-up">
+          <StatsOverview stats={getStats()} />
+        </div>
 
-          {activeTab === 'map' && (
-            <GlobalFliiinkerMap fliiinkers={fliiinkers} height="700px" />
-          )}
+        {/* Navigation par onglets élégante */}
+        <div className="animate-slide-up">
+          <Card className="bg-white/80 backdrop-blur-lg border border-gray-200/50 shadow-xl rounded-3xl overflow-hidden">
+            <CardBody className="p-0">
+              <Tabs 
+                selectedKey={activeTab}
+                onSelectionChange={(key) => setActiveTab(key as TabType)}
+                variant="underlined"
+                classNames={{
+                  tabList: "gap-12 w-full relative rounded-none p-8 border-b border-gray-200/50 bg-gradient-to-r from-gray-50/30 to-gray-50/10",
+                  cursor: "w-full h-1 bg-apple-intelligence rounded-full",
+                  tab: "max-w-fit px-0 py-4 h-auto",
+                  tabContent: "group-data-[selected=true]:text-gray-900 font-medium text-gray-500 transition-all duration-300"
+                }}
+              >
+                <Tab
+                  key="list"
+                  title={
+                    <div className="flex items-center space-x-3">
+                      <div className="w-10 h-10 bg-gray-100 rounded-xl flex items-center justify-center group-data-[selected=true]:bg-apple-intelligence transition-all duration-300">
+                        <List className="w-5 h-5 group-data-[selected=true]:text-white" />
+                      </div>
+                      <div className="text-left">
+                        <div className="font-medium">Profils Fliiinker</div>
+                        <div className="text-xs text-gray-400">{filteredFliiinkers.length} disponibles</div>
+                      </div>
+                    </div>
+                  }
+                >
+                  <div className="p-8 space-y-8">
+                    <SearchBar searchTerm={searchTerm} onSearchChange={setSearchTerm} />
+
+                    <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                      {filteredFliiinkers.map((fliiinker) => (
+                        <FliiinkerCard
+                          key={fliiinker.profile.id}
+                          fliiinker={fliiinker}
+                          decision={decisions[fliiinker.profile.id]}
+                          onDecision={handleDecision}
+                          onViewDetails={handleViewDetails}
+                        />
+                      ))}
+                    </div>
+
+                    {!loading && filteredFliiinkers.length === 0 && fliiinkers.length > 0 && (
+                      <div className="text-center py-20">
+                        <div className="w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                          <Users className="w-8 h-8 text-gray-400" />
+                        </div>
+                        <p className="text-gray-500 text-lg font-light mb-6">
+                          {searchTerm ? `Aucun profil trouvé pour "${searchTerm}"` : 'Aucun profil disponible'}
+                        </p>
+                        {searchTerm && (
+                          <button
+                            onClick={() => setSearchTerm('')}
+                            className="text-gray-900 hover:text-gray-600 font-medium transition-colors"
+                          >
+                            Réinitialiser la recherche
+                          </button>
+                        )}
+                      </div>
+                    )}
+
+                    {!loading && fliiinkers.length === 0 && (
+                      <div className="text-center py-20">
+                        <div className="w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                          <Users className="w-8 h-8 text-gray-400" />
+                        </div>
+                        <p className="text-gray-500 text-lg font-light">
+                          Aucun profil disponible dans votre base de données
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </Tab>
+
+                <Tab
+                  key="statistics"
+                  title={
+                    <div className="flex items-center space-x-3">
+                      <div className="w-10 h-10 bg-gray-100 rounded-xl flex items-center justify-center group-data-[selected=true]:bg-apple-intelligence transition-all duration-300">
+                        <BarChart3 className="w-5 h-5 group-data-[selected=true]:text-white" />
+                      </div>
+                      <div className="text-left">
+                        <div className="font-medium">Statistiques</div>
+                        <div className="text-xs text-gray-400">Analytics avancées</div>
+                      </div>
+                    </div>
+                  }
+                >
+                  <div className="p-8">
+                    <AdvancedStatistics fliiinkers={fliiinkers} />
+                  </div>
+                </Tab>
+
+                <Tab
+                  key="map"
+                  title={
+                    <div className="flex items-center space-x-3">
+                      <div className="w-10 h-10 bg-gray-100 rounded-xl flex items-center justify-center group-data-[selected=true]:bg-apple-intelligence transition-all duration-300">
+                        <Map className="w-5 h-5 group-data-[selected=true]:text-white" />
+                      </div>
+                      <div className="text-left">
+                        <div className="font-medium">Cartographie</div>
+                        <div className="text-xs text-gray-400">Vue géographique</div>
+                      </div>
+                    </div>
+                  }
+                >
+                  <div className="p-8">
+                    <GlobalFliiinkerMap fliiinkers={fliiinkers} height="700px" />
+                  </div>
+                </Tab>
+              </Tabs>
+            </CardBody>
+          </Card>
         </div>
       </div>
 
