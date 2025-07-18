@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { FliiinkerData, DecisionAction } from '@/types/database'
 import FliiinkerCard from '@/components/FliiinkerCard'
-import FilterBar from '@/components/FilterBar'
+import SearchBar from '@/components/FilterBar'
 import StatsOverview from '@/components/StatsOverview'
 import FliiinkerDetailModal from '@/components/FliiinkerDetailModal'
 import AdvancedStatistics from '@/components/AdvancedStatistics'
@@ -31,12 +31,7 @@ export default function Dashboard() {
   const [selectedFliiinker, setSelectedFliiinker] = useState<FliiinkerData | null>(null)
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false)
   const [activeTab, setActiveTab] = useState<TabType>('list')
-  const [filters, setFilters] = useState({
-    status: 'all',
-    isValidated: 'all',
-    isPro: 'all',
-    verificationStatus: 'all'
-  })
+  const [searchTerm, setSearchTerm] = useState('')
 
   useEffect(() => {
     const loadFliiinkers = async () => {
@@ -72,28 +67,24 @@ export default function Dashboard() {
   }, [])
 
   useEffect(() => {
-    let filtered = [...fliiinkers]
-
-    if (filters.status !== 'all') {
-      filtered = filtered.filter(f => f.fliiinkerProfile?.status === filters.status)
+    if (!searchTerm.trim()) {
+      setFilteredFliiinkers(fliiinkers)
+      return
     }
 
-    if (filters.isValidated !== 'all') {
-      const isValidated = filters.isValidated === 'true'
-      filtered = filtered.filter(f => f.fliiinkerProfile?.is_validated === isValidated)
-    }
-
-    if (filters.isPro !== 'all') {
-      const isPro = filters.isPro === 'true'
-      filtered = filtered.filter(f => f.fliiinkerProfile?.is_pro === isPro)
-    }
-
-    if (filters.verificationStatus !== 'all') {
-      filtered = filtered.filter(f => f.administrativeData?.id_card_verification_status === filters.verificationStatus)
-    }
+    const filtered = fliiinkers.filter(fliiinker => {
+      const firstName = fliiinker.profile.first_name || ''
+      const lastName = fliiinker.profile.last_name || ''
+      const fullName = `${firstName} ${lastName}`.toLowerCase()
+      const search = searchTerm.toLowerCase().trim()
+      
+      return fullName.includes(search) || 
+             firstName.toLowerCase().includes(search) ||
+             lastName.toLowerCase().includes(search)
+    })
 
     setFilteredFliiinkers(filtered)
-  }, [filters, fliiinkers])
+  }, [searchTerm, fliiinkers])
 
   const handleDecision = (fliiinkerId: string, action: DecisionAction) => {
     setDecisions(prev => ({
@@ -114,11 +105,51 @@ export default function Dashboard() {
 
   const getStats = () => {
     const total = fliiinkers.length
-    const approved = Object.values(decisions).filter(d => d === 'approve').length
-    const rejected = Object.values(decisions).filter(d => d === 'reject').length
-    const pending = total - approved - rejected
     
-    return { total, approved, rejected, pending }
+    // Calculer le nombre total de services uniques
+    const uniqueServices = new Set<number>()
+    fliiinkers.forEach(fliiinker => {
+      fliiinker.services.forEach(service => {
+        uniqueServices.add(service.service_id)
+      })
+    })
+    const totalServices = uniqueServices.size
+    
+    // Calculer le prix moyen global
+    const allPrices = fliiinkers.flatMap(f => f.services.map(s => s.hourly_rate))
+    const averagePrice = allPrices.length > 0 
+      ? Math.round((allPrices.reduce((sum, price) => sum + price, 0) / allPrices.length) * 100) / 100
+      : 0
+    
+    // Calculer le rayon moyen global
+    const allRadii = fliiinkers.flatMap(f => f.addressLocations.map(al => al.radius_max))
+    const averageRadius = allRadii.length > 0 
+      ? Math.round((allRadii.reduce((sum, radius) => sum + radius, 0) / allRadii.length) * 100) / 100
+      : 0
+    
+    // Calculer le nombre de villes uniques
+    const uniqueCities = new Set<string>()
+    fliiinkers.forEach(fliiinker => {
+      fliiinker.addresses.forEach(address => {
+        if (address.city) {
+          uniqueCities.add(address.city)
+        }
+      })
+    })
+    const totalCities = uniqueCities.size
+    
+    // Calculer le ratio de professionnels
+    const professionals = fliiinkers.filter(f => f.fliiinkerProfile?.is_pro).length
+    const professionalRatio = total > 0 ? Math.round((professionals / total) * 100) : 0
+    
+    return { 
+      total, 
+      totalServices, 
+      averagePrice, 
+      averageRadius, 
+      totalCities, 
+      professionalRatio 
+    }
   }
 
   const tabs = [
@@ -126,7 +157,7 @@ export default function Dashboard() {
       id: 'list' as TabType,
       name: 'Liste des Fliiinkers',
       icon: List,
-      count: fliiinkers.length
+      count: filteredFliiinkers.length
     },
     {
       id: 'statistics' as TabType,
@@ -254,7 +285,7 @@ export default function Dashboard() {
         <div className="p-6">
           {activeTab === 'list' && (
             <div className="space-y-6">
-              <FilterBar filters={filters} onFiltersChange={setFilters} />
+              <SearchBar searchTerm={searchTerm} onSearchChange={setSearchTerm} />
 
               <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                 {filteredFliiinkers.map((fliiinker) => (
@@ -271,8 +302,16 @@ export default function Dashboard() {
               {!loading && filteredFliiinkers.length === 0 && fliiinkers.length > 0 && (
                 <div className="text-center py-12">
                   <p className="text-gray-500 text-lg">
-                    Aucun fliiinker ne correspond aux filtres sélectionnés
+                    {searchTerm ? `Aucun fliiinker trouvé pour "${searchTerm}"` : 'Aucun fliiinker ne correspond aux critères'}
                   </p>
+                  {searchTerm && (
+                    <button
+                      onClick={() => setSearchTerm('')}
+                      className="mt-2 text-primary-600 hover:text-primary-700 font-medium"
+                    >
+                      Effacer la recherche
+                    </button>
+                  )}
                 </div>
               )}
 

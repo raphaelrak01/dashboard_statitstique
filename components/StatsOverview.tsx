@@ -1,107 +1,102 @@
 'use client'
 
-import { Users, CheckCircle, XCircle, Clock } from 'lucide-react'
+import { FliiinkerData } from '@/types/database'
+import { Users, Target, DollarSign, MapPin, TrendingUp, Briefcase } from 'lucide-react'
 
 interface StatsOverviewProps {
   stats: {
     total: number
-    approved: number
-    rejected: number
-    pending: number
+    totalServices: number
+    averagePrice: number
+    averageRadius: number
+    totalCities: number
+    professionalRatio: number
   }
 }
 
 export default function StatsOverview({ stats }: StatsOverviewProps) {
-  const { total, approved, rejected, pending } = stats
-
-  const getProgressPercentage = (value: number) => {
-    return total > 0 ? (value / total) * 100 : 0
-  }
-
-  const statCards = [
-    {
-      title: 'Total Fliiinkers',
-      value: total,
-      icon: Users,
-      color: 'text-gray-600',
-      bgColor: 'bg-gray-50',
-      borderColor: 'border-gray-200'
-    },
-    {
-      title: 'Approuvés',
-      value: approved,
-      icon: CheckCircle,
-      color: 'text-success-600',
-      bgColor: 'bg-success-50',
-      borderColor: 'border-success-200',
-      percentage: getProgressPercentage(approved)
-    },
-    {
-      title: 'Rejetés',
-      value: rejected,
-      icon: XCircle,
-      color: 'text-danger-600',
-      bgColor: 'bg-danger-50',
-      borderColor: 'border-danger-200',
-      percentage: getProgressPercentage(rejected)
-    },
-    {
-      title: 'En attente',
-      value: pending,
-      icon: Clock,
-      color: 'text-warning-600',
-      bgColor: 'bg-warning-50',
-      borderColor: 'border-warning-200',
-      percentage: getProgressPercentage(pending)
-    }
-  ]
-
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-      {statCards.map((stat, index) => {
-        const Icon = stat.icon
-        return (
-          <div
-            key={stat.title}
-            className={`${stat.bgColor} ${stat.borderColor} border rounded-lg p-6 transition-all duration-200 hover:shadow-md`}
-          >
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600 mb-1">
-                  {stat.title}
-                </p>
-                <p className={`text-3xl font-bold ${stat.color}`}>
-                  {stat.value}
-                </p>
-                {stat.percentage !== undefined && (
-                  <p className="text-sm text-gray-500 mt-1">
-                    {stat.percentage.toFixed(1)}% du total
-                  </p>
-                )}
-              </div>
-              <div className={`p-3 rounded-full ${stat.bgColor}`}>
-                <Icon className={`w-8 h-8 ${stat.color}`} />
-              </div>
-            </div>
-            
-            {/* Barre de progression pour les décisions */}
-            {stat.percentage !== undefined && total > 0 && (
-              <div className="mt-4">
-                <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div
-                    className={`h-2 rounded-full transition-all duration-300 ${
-                      stat.title === 'Approuvés' ? 'bg-success-500' :
-                      stat.title === 'Rejetés' ? 'bg-danger-500' :
-                      'bg-warning-500'
-                    }`}
-                    style={{ width: `${stat.percentage}%` }}
-                  />
-                </div>
-              </div>
-            )}
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6">
+      {/* Total Fliiinkers */}
+      <div className="bg-white rounded-lg border border-gray-200 p-6">
+        <div className="flex items-center">
+          <div className="flex-shrink-0">
+            <Users className="h-8 w-8 text-primary-600" />
           </div>
-        )
-      })}
+          <div className="ml-4">
+            <p className="text-sm font-medium text-gray-600">Total Fliiinkers</p>
+            <p className="text-2xl font-bold text-gray-900">{stats.total}</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Total Services */}
+      <div className="bg-white rounded-lg border border-gray-200 p-6">
+        <div className="flex items-center">
+          <div className="flex-shrink-0">
+            <Briefcase className="h-8 w-8 text-blue-600" />
+          </div>
+          <div className="ml-4">
+            <p className="text-sm font-medium text-gray-600">Services Totaux</p>
+            <p className="text-2xl font-bold text-gray-900">{stats.totalServices}</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Prix Moyen */}
+      <div className="bg-white rounded-lg border border-gray-200 p-6">
+        <div className="flex items-center">
+          <div className="flex-shrink-0">
+            <DollarSign className="h-8 w-8 text-green-600" />
+          </div>
+          <div className="ml-4">
+            <p className="text-sm font-medium text-gray-600">Prix Moyen</p>
+            <p className="text-2xl font-bold text-gray-900">{stats.averagePrice}€</p>
+            <p className="text-xs text-gray-500">par heure</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Rayon Moyen */}
+      <div className="bg-white rounded-lg border border-gray-200 p-6">
+        <div className="flex items-center">
+          <div className="flex-shrink-0">
+            <Target className="h-8 w-8 text-orange-600" />
+          </div>
+          <div className="ml-4">
+            <p className="text-sm font-medium text-gray-600">Rayon Moyen</p>
+            <p className="text-2xl font-bold text-gray-900">{stats.averageRadius / 1000}</p>
+            <p className="text-xs text-gray-500">kilomètres</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Villes Couvertes */}
+      <div className="bg-white rounded-lg border border-gray-200 p-6">
+        <div className="flex items-center">
+          <div className="flex-shrink-0">
+            <MapPin className="h-8 w-8 text-purple-600" />
+          </div>
+          <div className="ml-4">
+            <p className="text-sm font-medium text-gray-600">Villes Couvertes</p>
+            <p className="text-2xl font-bold text-gray-900">{stats.totalCities}</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Ratio Professionnels */}
+      <div className="bg-white rounded-lg border border-gray-200 p-6">
+        <div className="flex items-center">
+          <div className="flex-shrink-0">
+            <TrendingUp className="h-8 w-8 text-indigo-600" />
+          </div>
+          <div className="ml-4">
+            <p className="text-sm font-medium text-gray-600">Professionnels</p>
+            <p className="text-2xl font-bold text-gray-900">{stats.professionalRatio}%</p>
+            <p className="text-xs text-gray-500">du total</p>
+          </div>
+        </div>
+      </div>
     </div>
   )
 } 

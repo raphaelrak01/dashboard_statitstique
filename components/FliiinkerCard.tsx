@@ -1,19 +1,11 @@
 'use client'
 
 import { FliiinkerData, DecisionAction } from '@/types/database'
-import { Check, X, Clock, Eye, MapPin, Phone, Mail, Star, AlertCircle } from 'lucide-react'
+import { MapPin, CheckCircle, XCircle, Users, Star, Calendar, Briefcase, Phone } from 'lucide-react'
 import { format } from 'date-fns'
 import { fr } from 'date-fns/locale'
 
-interface FliiinkerCardProps {
-  fliiinker: FliiinkerData
-  decision?: DecisionAction
-  onDecision: (fliiinkerId: string, action: DecisionAction) => void
-  onViewDetails?: (fliiinker: FliiinkerData) => void
-}
-
 const base_url_image = process.env.NEXT_PUBLIC_BASE_URL_IMAGE
-console.log('Base URL Image:', base_url_image)
 
 // Fonction pour construire l'URL de l'avatar
 const getAvatarUrl = (avatar?: string, firstName?: string, lastName?: string) => {
@@ -26,228 +18,194 @@ const getAvatarUrl = (avatar?: string, firstName?: string, lastName?: string) =>
   return `https://ui-avatars.com/api/?name=${firstName}+${lastName}&background=3b82f6&color=fff`
 }
 
+interface FliiinkerCardProps {
+  fliiinker: FliiinkerData
+  decision?: DecisionAction
+  onDecision: (fliiinkerId: string, action: DecisionAction) => void
+  onViewDetails: (fliiinker: FliiinkerData) => void
+}
+
 export default function FliiinkerCard({ fliiinker, decision, onDecision, onViewDetails }: FliiinkerCardProps) {
-  const { profile, fliiinkerProfile, services, addresses, administrativeData } = fliiinker
+  const { profile, fliiinkerProfile, addresses, services, serviceDetails } = fliiinker
 
-  const getStatusBadge = (status?: string) => {
-    switch (status) {
-      case 'active':
-        return <span className="badge badge-success">Actif</span>
-      case 'pending':
-        return <span className="badge badge-warning">En attente</span>
-      case 'created':
-        return <span className="badge badge-gray">Créé</span>
-      default:
-        return <span className="badge badge-gray">Inconnu</span>
-    }
-  }
+  // Obtenir l'adresse principale
+  const mainAddress = addresses.find(addr => addr.is_default) || addresses[0]
+  
+  // Obtenir les services actifs avec leurs détails
+  const activeServices = services
+    .filter(service => service.is_active)
+    .map(service => {
+      const details = serviceDetails.find(sd => sd.id === service.service_id)
+      return {
+        ...service,
+        name: details?.name || `Service #${service.service_id}`,
+        description: details?.description
+      }
+    })
 
-  const getVerificationBadge = (status?: string) => {
-    switch (status) {
-      case 'verified':
-        return <span className="badge badge-success">Vérifié</span>
-      case 'pending':
-        return <span className="badge badge-warning">En attente</span>
-      case 'rejected':
-        return <span className="badge badge-danger">Rejeté</span>
-      default:
-        return <span className="badge badge-gray">Non vérifié</span>
-    }
-  }
-
-  const getDecisionStyle = () => {
-    switch (decision) {
+  const getDecisionStyle = (action: DecisionAction) => {
+    switch (action) {
       case 'approve':
-        return 'ring-2 ring-success-500 bg-success-50'
+        return 'bg-success-500 hover:bg-success-600 text-white'
       case 'reject':
-        return 'ring-2 ring-danger-500 bg-danger-50'
+        return 'bg-danger-500 hover:bg-danger-600 text-white'
       case 'review':
-        return 'ring-2 ring-warning-500 bg-warning-50'
+        return 'bg-warning-500 hover:bg-warning-600 text-white'
       default:
-        return ''
+        return 'bg-gray-500 hover:bg-gray-600 text-white'
     }
   }
 
-  const address = addresses[0]
-  const service = services[0]
+  const getDecisionLabel = (action: DecisionAction) => {
+    switch (action) {
+      case 'approve':
+        return 'Approuvé'
+      case 'reject':
+        return 'Rejeté'
+      case 'review':
+        return 'À réviser'
+      case 'pending':
+        return 'En attente'
+      default:
+        return 'Aucune'
+    }
+  }
 
   return (
-    <div className={`card transition-all duration-200 ${getDecisionStyle()}`}>
-      {/* En-tête avec avatar et infos de base */}
-      <div className="flex items-start space-x-4 mb-4">
-        <div className="flex-shrink-0">
+    <div className="bg-white rounded-lg border border-gray-200 hover:shadow-lg transition-all duration-200 overflow-hidden">
+      <div className="p-6">
+        {/* Header avec avatar et infos de base */}
+        <div className="flex items-start space-x-4 mb-4">
           <img
             src={getAvatarUrl(profile.avatar, profile.first_name, profile.last_name)}
             alt={`${profile.first_name} ${profile.last_name}`}
             className="w-16 h-16 rounded-full border-2 border-gray-200"
-            onError={(e) => {
-              // En cas d'erreur de chargement, utilise le fallback
-              e.currentTarget.src = `https://ui-avatars.com/api/?name=${profile.first_name}+${profile.last_name}&background=3b82f6&color=fff`
-            }}
           />
-          {/* Debug info - à supprimer en production
-          {base_url_image && (
-            <p className="text-xs text-gray-500 mt-1">
-              URL: {getAvatarUrl(profile.avatar, profile.first_name, profile.last_name)}
-            </p>
-          )} */}
-        </div>
-        <div className="flex-1 min-w-0">
-          <h3 className="text-lg font-semibold text-gray-900 truncate">
-            {profile.first_name} {profile.last_name}
-          </h3>
-          <p className="text-sm text-gray-500 truncate">{profile.email}</p>
-          <div className="flex items-center space-x-2 mt-1">
-            {getStatusBadge(fliiinkerProfile?.status)}
-            {fliiinkerProfile?.is_pro && (
-              <span className="badge badge-success">Pro</span>
-            )}
-            {fliiinkerProfile?.is_validated && (
-              <span className="inline-flex items-center">
-                <Star className="w-3 h-3 text-yellow-500 fill-current" />
-              </span>
+          <div className="flex-1 min-w-0">
+            <h3 className="text-lg font-semibold text-gray-900 truncate">
+              {profile.first_name} {profile.last_name}
+            </h3>
+            <p className="text-sm text-gray-600 truncate">{profile.email}</p>
+            {fliiinkerProfile?.tagline && (
+              <p className="text-sm text-primary-600 font-medium truncate mt-1">
+                "{fliiinkerProfile.tagline}"
+              </p>
             )}
           </div>
         </div>
-      </div>
 
-      {/* Tagline */}
-      {fliiinkerProfile?.tagline && (
-        <p className="text-sm text-gray-600 italic mb-3">
-          "{fliiinkerProfile.tagline}"
-        </p>
-      )}
-
-      {/* Informations détaillées */}
-      <div className="space-y-3 mb-4">
-        {/* Contact */}
-        <div className="flex items-center space-x-2 text-sm text-gray-600">
-          <Phone className="w-4 h-4" />
-          <span>{profile.phone || 'Non renseigné'}</span>
-        </div>
-
-        {/* Adresse */}
-        {address && (
-          <div className="flex items-center space-x-2 text-sm text-gray-600">
-            <MapPin className="w-4 h-4" />
-            <span>{address.city}, {address.zip_code}</span>
-          </div>
-        )}
-
-        {/* Service principal */}
-        {service && (
-          <div className="bg-gray-50 rounded-lg p-3">
-            <div className="flex justify-between items-center">
-              <span className="text-sm font-medium">Service principal</span>
-              <span className={`badge ${service.is_active ? 'badge-success' : 'badge-gray'}`}>
-                {service.is_active ? 'Actif' : 'Inactif'}
-              </span>
-            </div>
-            <p className="text-sm text-gray-600 mt-1">{service.description}</p>
-            <p className="text-sm font-semibold text-primary-600 mt-1">
-              {service.hourly_rate.toFixed(0)}€/h
-            </p>
-          </div>
-        )}
-
-        {/* Données administratives */}
-        {administrativeData && (
-          <div className="bg-gray-50 rounded-lg p-3">
-            <div className="flex justify-between items-center mb-2">
-              <span className="text-sm font-medium">Vérifications</span>
-              {getVerificationBadge(administrativeData.id_card_verification_status)}
-            </div>
-            <div className="grid grid-cols-2 gap-2 text-xs text-gray-600">
-              <div className="flex items-center space-x-1">
-                <div className={`w-2 h-2 rounded-full ${administrativeData.ssn_is_valid ? 'bg-success-500' : 'bg-gray-300'}`} />
-                <span>Sécu. sociale</span>
-              </div>
-              <div className="flex items-center space-x-1">
-                <div className={`w-2 h-2 rounded-full ${administrativeData.has_driver_liscence ? 'bg-success-500' : 'bg-gray-300'}`} />
-                <span>Permis</span>
-              </div>
-              <div className="flex items-center space-x-1">
-                <div className={`w-2 h-2 rounded-full ${administrativeData.has_car ? 'bg-success-500' : 'bg-gray-300'}`} />
-                <span>Véhicule</span>
-              </div>
-              <div className="flex items-center space-x-1">
-                <div className={`w-2 h-2 rounded-full ${administrativeData.is_entrepreneur ? 'bg-success-500' : 'bg-gray-300'}`} />
-                <span>Entrepreneur</span>
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* État de la décision */}
-      {decision && (
-        <div className="mb-4 p-3 rounded-lg bg-gray-50 border-l-4 border-primary-500">
-          <p className="text-sm font-medium text-gray-900">
-            Décision prise : 
-            <span className={`ml-2 ${
-              decision === 'approve' ? 'text-success-600' :
-              decision === 'reject' ? 'text-danger-600' :
-              decision === 'review' ? 'text-warning-600' :
-              'text-gray-600'
-            }`}>
-              {decision === 'approve' ? 'Approuvé' :
-               decision === 'reject' ? 'Rejeté' :
-               decision === 'review' ? 'À revoir' :
-               'En attente'}
+        {/* Statuts */}
+        <div className="flex flex-wrap gap-2 mb-4">
+          <span className={`badge ${fliiinkerProfile?.status === 'active' ? 'badge-success' : 'badge-gray'}`}>
+            {fliiinkerProfile?.status === 'active' ? 'Actif' : 'Inactif'}
+          </span>
+          <span className={`badge ${fliiinkerProfile?.is_pro ? 'badge-primary' : 'badge-secondary'}`}>
+            {fliiinkerProfile?.is_pro ? 'Pro' : 'Particulier'}
+          </span>
+          {fliiinkerProfile?.is_validated && (
+            <span className="badge badge-success">
+              <CheckCircle className="w-3 h-3 mr-1" />
+              Validé
             </span>
-          </p>
+          )}
         </div>
-      )}
 
-      {/* Bouton voir les détails */}
-      <div className="mb-4">
-        <button
-          onClick={() => onViewDetails?.(fliiinker)}
-          className="w-full btn btn-primary text-sm py-2"
-        >
-          <Eye className="w-4 h-4 mr-2" />
-          Voir les détails
-        </button>
-      </div>
+        {/* Localisation */}
+        {mainAddress && (
+          <div className="flex items-center text-sm text-gray-600 mb-4">
+            <MapPin className="w-4 h-4 mr-2 flex-shrink-0" />
+            <span className="truncate">
+              {mainAddress.city}, {mainAddress.zip_code}
+            </span>
+          </div>
+        )}
 
-      {/* Boutons d'action
-      <div className="grid grid-cols-4 gap-2">
-        <button
-          onClick={() => onDecision(profile.id, 'approve')}
-          className={`btn btn-success text-xs py-2 ${decision === 'approve' ? 'ring-2 ring-success-300' : ''}`}
-          title="Approuver"
-        >
-          <Check className="w-4 h-4" />
-        </button>
-        <button
-          onClick={() => onDecision(profile.id, 'reject')}
-          className={`btn btn-danger text-xs py-2 ${decision === 'reject' ? 'ring-2 ring-danger-300' : ''}`}
-          title="Rejeter"
-        >
-          <X className="w-4 h-4" />
-        </button>
-        <button
-          onClick={() => onDecision(profile.id, 'review')}
-          className={`btn btn-warning text-xs py-2 ${decision === 'review' ? 'ring-2 ring-warning-300' : ''}`}
-          title="À revoir"
-        >
-          <AlertCircle className="w-4 h-4" />
-        </button>
-        <button
-          onClick={() => onDecision(profile.id, 'pending')}
-          className={`btn btn-secondary text-xs py-2 ${decision === 'pending' ? 'ring-2 ring-gray-300' : ''}`}
-          title="Remettre en attente"
-        >
-          <Clock className="w-4 h-4" />
-        </button>
-      </div>
+        {/* Phone Number */ }
+        {profile.phone && (
+          <div className="flex items-center text-sm text-gray-600 mb-4">
+            <Phone className="w-4 h-4 mr-2 flex-shrink-0" />
+            <span className="truncate">{profile.phone}</span>
+          </div>
+        )}
 
-      {/* Timestamp de création */}
-      {/* <div className="mt-3 pt-3 border-t border-gray-200">
-        <p className="text-xs text-gray-500">
+        {/* Description du profil fliiinker */}
+        {fliiinkerProfile?.description && (
+          <div className="bg-gray-50 rounded-lg p-3 mb-4">
+            <div className="flex justify-between items-center mb-2">
+              <span className="text-sm font-medium">Description du profil</span>
+            </div>
+            <div className="max-h-24 overflow-y-auto">
+              <p className="text-sm text-gray-600 whitespace-pre-wrap">
+                {fliiinkerProfile.description}
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* Services actifs */}
+        <div className="bg-blue-50 rounded-lg p-3 mb-4">
+          <div className="flex justify-between items-center mb-2">
+            <span className="text-sm font-medium flex items-center">
+              <Briefcase className="w-4 h-4 mr-1 text-blue-600" />
+              Services actifs
+            </span>
+            <span className="badge badge-primary text-xs">
+              {activeServices.length}
+            </span>
+          </div>
+          {activeServices.length > 0 ? (
+            <div className="space-y-2">
+              {activeServices.slice(0, 3).map((service, index) => (
+                <div key={service.service_id} className="flex justify-between items-center">
+                  <span className="text-sm text-gray-700 truncate flex-1 mr-2">
+                    {service.name}
+                  </span>
+                  <span className="text-sm font-semibold text-blue-600">
+                    {service.hourly_rate.toFixed(0)}€/h
+                  </span>
+                </div>
+              ))}
+              {activeServices.length > 3 && (
+                <p className="text-xs text-gray-500 mt-1">
+                  +{activeServices.length - 3} autres services
+                </p>
+              )}
+            </div>
+          ) : (
+            <p className="text-sm text-gray-500">Aucun service actif</p>
+          )}
+        </div>
+
+        {/* Informations complémentaires */}
+        <div className="grid grid-cols-2 gap-4 text-sm text-gray-600 mb-4">
+          <div>
+            <span className="font-medium">Services totaux :</span>
+            <br />
+            {services.length}
+          </div>
+          <div>
+            <span className="font-medium">Adresses :</span>
+            <br />
+            {addresses.length}
+          </div>
+        </div>
+
+        {/* Date de création */}
+        <div className="text-xs text-gray-500 mb-4 flex items-center">
+          <Calendar className="w-3 h-3 mr-1" />
           Créé le {format(new Date(profile.created_at), 'dd/MM/yyyy', { locale: fr })}
-        </p>
-      </div> */}
-    </div>
+        </div>
+
+        
+
+          {/* Bouton voir détails */}
+          <button
+            onClick={() => onViewDetails(fliiinker)}
+            className="btn btn-primary w-full"
+          >
+            Voir les détails
+          </button>
+        </div>
+      </div>
   )
 } 
