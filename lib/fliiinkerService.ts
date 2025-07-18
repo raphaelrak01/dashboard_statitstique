@@ -98,18 +98,40 @@ export async function getEligibleFliiinkers(): Promise<FliiinkerData[]> {
       console.error('Erreur lors de la récupération des localisations:', locationsError)
     }
 
-    // 7. Assembler les données
+    // 7. Récupérer les détails des services
+    const serviceIds = services?.map(s => s.service_id) || []
+    let serviceDetails = []
+    
+    if (serviceIds.length > 0) {
+      const { data: servicesData, error: serviceDetailsError } = await supabase
+        .from('service')
+        .select('*')
+        .in('id', serviceIds)
+
+      if (serviceDetailsError) {
+        console.error('Erreur lors de la récupération des détails des services:', serviceDetailsError)
+      } else {
+        serviceDetails = servicesData || []
+      }
+    }
+
+    // 8. Assembler les données
     const fliiinkersData: FliiinkerData[] = publicProfiles.map(profile => {
       const fliiinkerProfile = fliiinkerProfiles?.find(fp => fp.id === profile.id)
       const userServices = services?.filter(s => s.fliiinker_id === profile.id) || []
       const userAddresses = addresses?.filter(a => a.user_id === profile.id) || []
       const userAdminData = adminData?.find(ad => ad.public_profile_id === profile.id)
       const userLocations = addressLocations?.filter(al => al.user_id === profile.id) || []
+      
+      // Récupérer les détails des services pour cet utilisateur
+      const userServiceIds = userServices.map(s => s.service_id)
+      const userServiceDetails = serviceDetails?.filter(sd => userServiceIds.includes(sd.id)) || []
 
       return {
         profile,
         fliiinkerProfile,
         services: userServices,
+        serviceDetails: userServiceDetails,
         addresses: userAddresses,
         administrativeData: userAdminData,
         addressLocations: userLocations
@@ -158,10 +180,24 @@ export async function getFliiinkerById(id: string): Promise<FliiinkerData | null
       supabase.from('address_location').select('*').eq('user_id', id)
     ])
 
+    // Récupérer les détails des services
+    const serviceIds = services?.map(s => s.service_id) || []
+    let serviceDetails = []
+    
+    if (serviceIds.length > 0) {
+      const { data: servicesData } = await supabase
+        .from('service')
+        .select('*')
+        .in('id', serviceIds)
+      
+      serviceDetails = servicesData || []
+    }
+
     return {
       profile,
       fliiinkerProfile: fliiinkerProfile || undefined,
       services: services || [],
+      serviceDetails: serviceDetails,
       addresses: addresses || [],
       administrativeData: adminData || undefined,
       addressLocations: addressLocations || []

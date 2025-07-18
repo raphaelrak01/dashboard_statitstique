@@ -5,6 +5,7 @@ import { FliiinkerData, DecisionAction } from '@/types/database'
 import FliiinkerCard from '@/components/FliiinkerCard'
 import FilterBar from '@/components/FilterBar'
 import StatsOverview from '@/components/StatsOverview'
+import FliiinkerDetailModal from '@/components/FliiinkerDetailModal'
 
 export default function Dashboard() {
   const [fliiinkers, setFliiinkers] = useState<FliiinkerData[]>([])
@@ -12,6 +13,8 @@ export default function Dashboard() {
   const [decisions, setDecisions] = useState<Record<string, DecisionAction>>({})
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [selectedFliiinker, setSelectedFliiinker] = useState<FliiinkerData | null>(null)
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false)
   const [filters, setFilters] = useState({
     status: 'all',
     isValidated: 'all',
@@ -81,6 +84,16 @@ export default function Dashboard() {
       ...prev,
       [fliiinkerId]: action
     }))
+  }
+
+  const handleViewDetails = (fliiinker: FliiinkerData) => {
+    setSelectedFliiinker(fliiinker)
+    setIsDetailModalOpen(true)
+  }
+
+  const handleCloseDetails = () => {
+    setIsDetailModalOpen(false)
+    setSelectedFliiinker(null)
   }
 
   const getStats = () => {
@@ -176,6 +189,7 @@ export default function Dashboard() {
             fliiinker={fliiinker}
             decision={decisions[fliiinker.profile.id]}
             onDecision={handleDecision}
+            onViewDetails={handleViewDetails}
           />
         ))}
       </div>
@@ -195,6 +209,13 @@ export default function Dashboard() {
           </p>
         </div>
       )}
+
+      {/* Modal de détail */}
+      <FliiinkerDetailModal
+        fliiinker={selectedFliiinker}
+        isOpen={isDetailModalOpen}
+        onClose={handleCloseDetails}
+      />
     </div>
   )
 } 

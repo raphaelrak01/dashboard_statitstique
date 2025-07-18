@@ -1,7 +1,7 @@
 'use client'
 
 import { FliiinkerData, DecisionAction } from '@/types/database'
-import { Check, X, Clock, Eye, MapPin, Phone, Mail, Star } from 'lucide-react'
+import { Check, X, Clock, Eye, MapPin, Phone, Mail, Star, AlertCircle } from 'lucide-react'
 import { format } from 'date-fns'
 import { fr } from 'date-fns/locale'
 
@@ -9,9 +9,24 @@ interface FliiinkerCardProps {
   fliiinker: FliiinkerData
   decision?: DecisionAction
   onDecision: (fliiinkerId: string, action: DecisionAction) => void
+  onViewDetails?: (fliiinker: FliiinkerData) => void
 }
 
-export default function FliiinkerCard({ fliiinker, decision, onDecision }: FliiinkerCardProps) {
+const base_url_image = process.env.NEXT_PUBLIC_BASE_URL_IMAGE
+console.log('Base URL Image:', base_url_image)
+
+// Fonction pour construire l'URL de l'avatar
+const getAvatarUrl = (avatar?: string, firstName?: string, lastName?: string) => {
+  // Si on a une URL de base et un avatar
+  if (base_url_image && avatar) {
+    return `${base_url_image}/${avatar}`
+  }
+  
+  // Fallback vers le générateur d'avatar
+  return `https://ui-avatars.com/api/?name=${firstName}+${lastName}&background=3b82f6&color=fff`
+}
+
+export default function FliiinkerCard({ fliiinker, decision, onDecision, onViewDetails }: FliiinkerCardProps) {
   const { profile, fliiinkerProfile, services, addresses, administrativeData } = fliiinker
 
   const getStatusBadge = (status?: string) => {
@@ -62,10 +77,20 @@ export default function FliiinkerCard({ fliiinker, decision, onDecision }: Fliii
       <div className="flex items-start space-x-4 mb-4">
         <div className="flex-shrink-0">
           <img
-            src={profile.avatar || `https://ui-avatars.com/api/?name=${profile.first_name}+${profile.last_name}&background=3b82f6&color=fff`}
+            src={getAvatarUrl(profile.avatar, profile.first_name, profile.last_name)}
             alt={`${profile.first_name} ${profile.last_name}`}
             className="w-16 h-16 rounded-full border-2 border-gray-200"
+            onError={(e) => {
+              // En cas d'erreur de chargement, utilise le fallback
+              e.currentTarget.src = `https://ui-avatars.com/api/?name=${profile.first_name}+${profile.last_name}&background=3b82f6&color=fff`
+            }}
           />
+          {/* Debug info - à supprimer en production
+          {base_url_image && (
+            <p className="text-xs text-gray-500 mt-1">
+              URL: {getAvatarUrl(profile.avatar, profile.first_name, profile.last_name)}
+            </p>
+          )} */}
         </div>
         <div className="flex-1 min-w-0">
           <h3 className="text-lg font-semibold text-gray-900 truncate">
@@ -174,7 +199,18 @@ export default function FliiinkerCard({ fliiinker, decision, onDecision }: Fliii
         </div>
       )}
 
-      {/* Boutons d'action */}
+      {/* Bouton voir les détails */}
+      <div className="mb-4">
+        <button
+          onClick={() => onViewDetails?.(fliiinker)}
+          className="w-full btn btn-primary text-sm py-2"
+        >
+          <Eye className="w-4 h-4 mr-2" />
+          Voir les détails
+        </button>
+      </div>
+
+      {/* Boutons d'action
       <div className="grid grid-cols-4 gap-2">
         <button
           onClick={() => onDecision(profile.id, 'approve')}
@@ -195,7 +231,7 @@ export default function FliiinkerCard({ fliiinker, decision, onDecision }: Fliii
           className={`btn btn-warning text-xs py-2 ${decision === 'review' ? 'ring-2 ring-warning-300' : ''}`}
           title="À revoir"
         >
-          <Eye className="w-4 h-4" />
+          <AlertCircle className="w-4 h-4" />
         </button>
         <button
           onClick={() => onDecision(profile.id, 'pending')}
@@ -207,11 +243,11 @@ export default function FliiinkerCard({ fliiinker, decision, onDecision }: Fliii
       </div>
 
       {/* Timestamp de création */}
-      <div className="mt-3 pt-3 border-t border-gray-200">
+      {/* <div className="mt-3 pt-3 border-t border-gray-200">
         <p className="text-xs text-gray-500">
           Créé le {format(new Date(profile.created_at), 'dd/MM/yyyy', { locale: fr })}
         </p>
-      </div>
+      </div> */}
     </div>
   )
 } 

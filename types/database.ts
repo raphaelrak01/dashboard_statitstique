@@ -91,10 +91,27 @@ export interface AddressLocation {
   hourly_rate_with_fees?: number;
 }
 
+export interface Service {
+  id: number;
+  created_at: string;
+  name: string;
+  description?: string;
+  body?: any;
+  is_published: boolean;
+  updated_at: string;
+  order: number;
+  service_zone?: any;
+  questions_for_client: any;
+  description_answer_heading?: string;
+  description_plum?: string;
+  superpower: any;
+}
+
 export interface FliiinkerData {
   profile: PublicProfile;
   fliiinkerProfile?: FliiinkerProfile;
   services: FliiinkerServiceMtm[];
+  serviceDetails: Service[];
   addresses: Address[];
   administrativeData?: AdministrativeData;
   addressLocations: AddressLocation[];
