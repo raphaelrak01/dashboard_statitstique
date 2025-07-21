@@ -283,7 +283,7 @@ export default function GlobalFliiinkersMap({ fliiinkers, height = '600px' }: Gl
           
           {/* Marqueurs pour les adresses */}
           {filteredFliiinkers.map((fliiinker) =>
-            fliiinkers.addresses.map((address) => (
+            fliiinker.addresses.map((address) => (
               <Marker 
                 key={`${fliiinker.profile.id}-${address.id}`}
                 position={[address.latitude, address.longitude]}
@@ -291,7 +291,7 @@ export default function GlobalFliiinkersMap({ fliiinkers, height = '600px' }: Gl
                 <Popup>
                   <div className="p-2 min-w-[200px]">
                     <h3 className="font-bold text-gray-800 mb-2">
-                      {fliiinkers.profile.first_name} {fliiinkers.profile.last_name}
+                      {fliiinker.profile.first_name} {fliiinker.profile.last_name}
                     </h3>
                     <div className="space-y-1 text-sm">
                       <p className="font-semibold text-blue-600">{address.name}</p>
@@ -301,8 +301,8 @@ export default function GlobalFliiinkersMap({ fliiinkers, height = '600px' }: Gl
                       {/* Services de ce fliiinker */}
                       <div className="mt-2 pt-2 border-t border-gray-200">
                         <p className="font-semibold text-gray-700 mb-1">Services :</p>
-                        {fliiinkers.services.map(service => {
-                          const serviceDetail = fliiinkers.serviceDetails.find(sd => sd.id === service.service_id)
+                        {fliiinker.services.map(service => {
+                          const serviceDetail = fliiinker.serviceDetails.find(sd => sd.id === service.service_id)
                           return (
                             <div key={service.service_id} className="flex justify-between items-center text-xs">
                               <span className="text-gray-600">
@@ -350,16 +350,16 @@ export default function GlobalFliiinkersMap({ fliiinkers, height = '600px' }: Gl
           ) : (
             // Mode normal - afficher les zones de service
             showCircles && filteredFliiinkers.map((fliiinker) =>
-              fliiinkers.addresses.map((address) =>
-                fliiinkers.addressLocations
+              fliiinker.addresses.map((address) =>
+                fliiinker.addressLocations
                   .filter(location => location.address_id === address.id)
                   .filter(location => {
                     if (selectedService === 'all') return true
-                    const serviceDetail = fliiinkers.serviceDetails.find(sd => sd.id === location.service_id)
+                    const serviceDetail = fliiinker.serviceDetails.find(sd => sd.id === location.service_id)
                     return (serviceDetail?.name || `Service #${location.service_id}`) === selectedService
                   })
                   .map((location, index) => {
-                    const serviceDetail = fliiinkers.serviceDetails.find(sd => sd.id === location.service_id)
+                    const serviceDetail = fliiinker.serviceDetails.find(sd => sd.id === location.service_id)
                     return (
                       <Circle
                         key={`${fliiinker.profile.id}-${address.id}-${location.service_id}-${index}`}
@@ -375,7 +375,7 @@ export default function GlobalFliiinkersMap({ fliiinkers, height = '600px' }: Gl
                         <Popup>
                           <div className="p-2">
                             <h3 className="font-bold text-gray-800">Zone de service</h3>
-                            <p className="text-sm"><strong>Fliiinker:</strong> {fliiinkers.profile.first_name} {fliiinkers.profile.last_name}</p>
+                            <p className="text-sm"><strong>Fliiinker:</strong> {fliiinker.profile.first_name} {fliiinker.profile.last_name}</p>
                             <p className="text-sm"><strong>Service:</strong> {serviceDetail?.name || `Service #${location.service_id}`}</p>
                             <p className="text-sm"><strong>Rayon:</strong> {location.radius_max} km</p>
                             <p className="text-sm"><strong>Tarif:</strong> {location.hourly_rate}€/h</p>
